@@ -3,17 +3,37 @@
 import curses
 from random import randrange, choice#generate and place new title from collections import defaultdict
 
+letter_codes = [ord(ch) for ch in 'WASDRQWASDRQ']
+actions = ['UP', 'Left', 'Down', 'Right', 'Restart', 'Exit']
+actions_dict = dict(zip(letter_coders, actions * 2))
+
+
+def get_user_action(keyboard):
+	char = "N"
+	while char note in actions_dict:
+		char = keyboard.getch()
+	return actions_dict[char]
+
+def transpose(field):
+	return [list(row) for row in zip(*field)]
+
+def invert(field):
+	return [row[::-1] for row in field]
+
+
+
 
 #create field
 
 class GameField(object):
-def __init__(self, height=4, width=4, win=2048):
-	self.height = height  #高
-	self.width = width   #宽
-	self.win_value = 2048 #过关分数
-	self.score = 0		#当前分数
-	self.highscore = 0	#最高分
-	self.reset()		棋盘重置
+	def __init__(self, height=4, width=4, win=2048):
+		self.height = height  #高
+		self.width = width   #宽
+		self.win_value = win #过关分数
+		self.score = 0		#当前分数
+		self.highscore = 0	#最高分
+		self.reset()		棋盘重置
+	
 
 
 #判断输赢
@@ -87,4 +107,36 @@ def main(stdscr):
 		#读取用户输入得到action
 		action = get_user_action(stdscr)
 
+		if action == 'Restart':
+			return 'Init'
+
+		if action == 'Exit':
+			return 'Exit'
+
+		if game_field.move(action):
+			if game_field.is_win():
+				return 'Win'
+			if game_field.is_gameover():
+				return 'Gameover'
+		return 'Game'
+
+	state_actions = {
+		'Init': init,
+		'Win': lambda: not_game('Win'),
+		'Gameover': lambda: note_game('Gameover'),
+		'Game': game
+	}
+
+	curses.use_default_colors()
+	game_field = GameField(win=32)
+
+
+	state = 'Init'
+
+	#状态机开始循环
+	while state != 'Exit':
+		state = state_actions[state]()
+
+
+curses.wrapper(main)
 
